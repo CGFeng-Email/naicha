@@ -1,0 +1,17 @@
+{
+    "statusCode": 200,
+    "data": [
+        {
+            "src": "https://naicha-1317202885.cos.ap-guangzhou.myqcloud.com/product/1634524848907375.jpg"
+        },
+        {
+            "src": "https://naicha-1317202885.cos.ap-guangzhou.myqcloud.com/product/1634524959166583.jpg"
+        },
+        {
+            "src": "https://naicha-1317202885.cos.ap-guangzhou.myqcloud.com/product/1634525061988930.jpg"
+        },
+        {
+            "src": "https://naicha-1317202885.cos.ap-guangzhou.myqcloud.com/product/1634525192422207.jpg"
+        }
+    ]
+}

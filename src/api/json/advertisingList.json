@@ -1,0 +1,11 @@
+{
+    "statusCode": 200,
+    "data": [
+        {
+            "src": "https://naicha-1317202885.cos.ap-guangzhou.myqcloud.com/index/banner001.jpg"
+        },
+        {
+            "src": "https://naicha-1317202885.cos.ap-guangzhou.myqcloud.com/index/banner002.jpg"
+        }
+    ]
+}
