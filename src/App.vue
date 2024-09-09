@@ -1,11 +1,21 @@
-<script setup lang="ts">
+<script setup>
+import require from '@/api/require';
+import { shopInfo } from '@/api/api';
 import { onLaunch, onShow, onHide } from "@dcloudio/uni-app";
-onLaunch(() => {
+onLaunch(async () => {
   // 获取胶囊坐标
   const getMenuButton = uni.getStorageSync('menuButton');
   if (!getMenuButton) {
+    // 获取胶囊信息api
     const res = uni.getMenuButtonBoundingClientRect();
     uni.setStorageSync('menuButton', res);
+  }
+
+  // 获取店铺信息
+  const getShopInfo = uni.getStorageSync('shopInfo');
+  if (!getShopInfo) {
+    const res = await require(shopInfo);
+    uni.setStorageSync('shopInfo', res)
   }
 
 });

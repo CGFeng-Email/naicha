@@ -28,11 +28,29 @@
 <script setup>
 import { ref, onMounted, getCurrentInstance } from 'vue';
 import useMenuButton from '@/hooks/useMenuButton.js';
+// 店铺信息
+import { useShopInfo } from '@/hooks/useShopInfo.js';
+console.log(useShopInfo());
+// 计算距离
+import { useDistance } from '@/hooks/useHooks.js';
 
 // 整个组件的占位符高度
 const topHeight = ref(0);
 // that
 const that = getCurrentInstance();
+// 腾讯地图key
+const mapKey = ref('ACQBZ-5PC64-QHSUD-K2WPT-K5HL3-QNBP7');
+// 交通计算方式
+const mapMode = ref('driving');
+// 用户经纬度
+const userLocation = ref('');
+// 店铺经纬度
+const shopLocation = ref('');
+// 距离
+const km = ref('0');
+// 到达时间
+const duration = ref('0');
+
 
 // 顶部组件脱离了文本流，获取到顶部组件的具体高度，做一个占位符
 // 使用获取节点api，需要在mounted后
@@ -43,6 +61,99 @@ onMounted(() => {
     topHeight.value = data.height + 'px'
   }).exec();
 })
+
+// 根据店铺的经纬度和用户的经纬度计算出到达的距离km，和到达时间
+
+// 计算距离
+const distance = async (from, to) => {
+  uni.request({
+    url: `https://apis.map.qq.com/ws/distance/v1/matrix?key=${mapKey.value}&mode=${mapMode.value}&from=${from}&to=${to}`,
+    success: res => {
+      console.log('距离', res);
+      if (res.statusCode == 200) {
+        if (res.data.result) {
+          const distance = res.data.result.rows[0].elements[0].distance;
+          console.log('distance', distance);
+          km.value = useDistance(Number(distance))
+          const duration = res.data.result.rows[0].elements[0].duration;
+          console.log('duration', duration);
+
+        } else {
+          uni.showToast({
+            title: res.data.message,
+            icon: 'none'
+          });
+        }
+      }
+    }
+  })
+}
+
+// 获取用户经纬度
+const getLocation = () => {
+  uni.getLocation({
+    type: 'wgs84',
+    success: function (res) {
+      console.log('获取经纬度', res);
+      // 计算到达店铺的距离
+      userLocation.value = res.latitude + ',' + res.longitude;
+      shopLocation.value = useShopInfo().location[1] + ',' + useShopInfo().location[0]
+      console.log('userLocation', userLocation.value);
+      console.log('shopLocation', shopLocation.value);
+      if (userLocation.value && shopLocation.value) {
+        distance(userLocation.value, shopLocation.value);
+      }
+    }
+  });
+}
+
+// 提示必须要开启定位授权
+const hintLocation = () => {
+  uni.authorize({
+    scope: 'scope.userLocation',
+    success: scope => {
+      // 授权了
+      if (scope.errMsg == 'authorize:ok') {
+        // 获取经纬度
+        getLocation();
+      }
+    },
+    fail: err => {
+      uni.getSetting({
+        success(res) {
+          if (res.authSetting['scope.userLocation']) {
+            // 获取经纬度
+            getLocation()
+          } else {
+            uni.showModal({
+              title: '地址位置未授权',
+              content: '请开启定位才可以下单',
+              success: res => {
+                if (res.confirm) {
+                  // 跳转到权限设置页面
+                  uni.openSetting({
+                    success(setting) {
+                      if (setting.authSetting['scope.userLocation']) {
+                        // 获取经纬度
+                        getLocation();
+                      }
+                    }
+                  });
+                } else if (res.cancel) {
+                  // 再次调起提示弹窗
+                  hintLocation();
+                }
+              }
+            })
+          }
+        }
+      })
+    }
+  })
+}
+
+hintLocation()
+
 </script>
 
 <style lang="scss" scoped>
