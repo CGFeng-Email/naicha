@@ -1,0 +1,44 @@
+{
+  "id": "4680016",
+  "name": "奶茶（茶百道）-微信",
+  "font_family": "iconfont",
+  "css_prefix_text": "icon-",
+  "description": "",
+  "glyphs": [
+    {
+      "icon_id": "5033788",
+      "name": "生鲜-蔬菜4",
+      "font_class": "shengxian-shucai",
+      "unicode": "e606",
+      "unicode_decimal": 58886
+    },
+    {
+      "icon_id": "826161",
+      "name": "推荐",
+      "font_class": "tuijian",
+      "unicode": "e636",
+      "unicode_decimal": 58934
+    },
+    {
+      "icon_id": "893390",
+      "name": "奶茶",
+      "font_class": "naicha",
+      "unicode": "e64b",
+      "unicode_decimal": 58955
+    },
+    {
+      "icon_id": "22611531",
+      "name": "水果",
+      "font_class": "shuiguo",
+      "unicode": "e62c",
+      "unicode_decimal": 58924
+    },
+    {
+      "icon_id": "32140887",
+      "name": "咖啡",
+      "font_class": "kafei",
+      "unicode": "e6da",
+      "unicode_decimal": 59098
+    }
+  ]
+}

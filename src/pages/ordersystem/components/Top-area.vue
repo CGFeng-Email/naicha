@@ -17,6 +17,7 @@
       <view class="distance-view">
         <image src="/static/weizhi.png" mode="widthFix" />
         <text>商家距离你16.88km</text>
+        <text>预计需要：{{ duration }}</text>
       </view>
     </view>
   </view>
@@ -32,14 +33,14 @@ import useMenuButton from '@/hooks/useMenuButton.js';
 import { useShopInfo } from '@/hooks/useShopInfo.js';
 console.log(useShopInfo());
 // 计算距离
-import { useDistance } from '@/hooks/useHooks.js';
+import { useDistance, useTime } from '@/hooks/useHooks.js';
 
 // 整个组件的占位符高度
 const topHeight = ref(0);
 // that
 const that = getCurrentInstance();
 // 腾讯地图key
-const mapKey = ref('ACQBZ-5PC64-QHSUD-K2WPT-K5HL3-QNBP7');
+const mapKey = ref('M7ABZ-A7FKG-UXXQ4-QLQJF-XACTJ-FLBBB');
 // 交通计算方式
 const mapMode = ref('driving');
 // 用户经纬度
@@ -47,9 +48,9 @@ const userLocation = ref('');
 // 店铺经纬度
 const shopLocation = ref('');
 // 距离
-const km = ref('0');
-// 到达时间
-const duration = ref('0');
+const km = ref('');
+// 预计到达分钟
+const duration = ref('');
 
 
 // 顶部组件脱离了文本流，获取到顶部组件的具体高度，做一个占位符
@@ -75,8 +76,8 @@ const distance = async (from, to) => {
           const distance = res.data.result.rows[0].elements[0].distance;
           console.log('distance', distance);
           km.value = useDistance(Number(distance))
-          const duration = res.data.result.rows[0].elements[0].duration;
-          console.log('duration', duration);
+          const time = res.data.result.rows[0].elements[0].duration;
+          duration.value = useTime(time);
 
         } else {
           uni.showToast({
@@ -94,12 +95,10 @@ const getLocation = () => {
   uni.getLocation({
     type: 'wgs84',
     success: function (res) {
-      console.log('获取经纬度', res);
+      // console.log('获取经纬度', res);
       // 计算到达店铺的距离
       userLocation.value = res.latitude + ',' + res.longitude;
       shopLocation.value = useShopInfo().location[1] + ',' + useShopInfo().location[0]
-      console.log('userLocation', userLocation.value);
-      console.log('shopLocation', shopLocation.value);
       if (userLocation.value && shopLocation.value) {
         distance(userLocation.value, shopLocation.value);
       }
@@ -205,6 +204,10 @@ hintLocation()
   width: 30rpx;
 }
 
+.distance-view {
+  display: flex;
+}
+
 .distance-view image {
   width: 27rpx;
 }
@@ -214,5 +217,9 @@ hintLocation()
   color: #999999;
   font-weight: initial;
   padding-left: 15rpx;
+}
+
+.distance-view text:nth-child(2) {
+  flex: 1;
 }
 </style>

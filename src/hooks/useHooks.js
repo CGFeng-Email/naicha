@@ -10,8 +10,14 @@ function useDistance(distance) {
     return km
 }
 
-// 计算时间
+// 秒转化成时间
+function useTime(seconds) {
+    let minutes = Math.floor(seconds / 60); // 分钟
+    let remainingSeconds = seconds % 60; // 剩余秒数
+    return `${minutes}分钟`
+}
 
 export {
-    useDistance
+    useDistance,
+    useTime
 }
