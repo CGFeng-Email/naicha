@@ -6,10 +6,13 @@ const advertisingListAPI = '/advertisingList.json';
 const shopInfo = '/shopInfo.json';
 // 分类列表
 const cartgoryAPI = '/category.json';
+// 订单详情
+const orderDetailsAPI = '/orderDetails.json'
 
 export {
     homeBnanerListAPI,
     advertisingListAPI,
     shopInfo,
-    cartgoryAPI
+    cartgoryAPI,
+    orderDetailsAPI
 }

@@ -1,6 +1,5 @@
 {
-	"pages": [
-		{
+	"pages": [{
 			"path": "pages/index/index",
 			"style": {
 				"navigationBarTitleText": "首页",
@@ -25,6 +24,25 @@
 			"style": {
 				"navigationBarTitleText": "我的"
 			}
+		},
+		{
+			"path": "pages/goodsDetails/index",
+			"style": {
+				"navigationBarTitleText": "商品详情"
+			}
+		},
+		{
+			"path": "pages/placeOrder/index",
+			"style": {
+				"navigationBarTitleText": "下单"
+			}
+		},
+		{
+			"path": "pages/orderDetails/index",
+			"style": {
+				"navigationBarTitleText": "订单详情",
+				"navigationBarBackgroundColor": "#fff"
+			}
 		}
 	],
 	"globalStyle": {
@@ -37,8 +55,7 @@
 		"color": "#c4c4c5",
 		"selectedColor": "#1d49c4",
 		"backgroundColor": "#fefefe",
-		"list": [
-			{
+		"list": [{
 				"pagePath": "pages/index/index",
 				"text": "首页",
 				"iconPath": "static/tab/shouye-a.png",

@@ -14,11 +14,12 @@
       </view>
     </scroll-view>
     <!-- 右边 -->
-    <scroll-view class="scroll-height-right" scroll-y enhanced enable-passive :show-scrollbar="false">
-      <view class="item-goods" v-for="(item, index) in cartgoryList" :key="item._id" :id="`A${item._id}`">
+
+    <scroll-view class="scroll-height-right" scroll-y enhanced enable-passive :show-scrollbar="false"
+      :scroll-into-view="scrollToViewId" @scroll="rightScroll">
+      <view class="item-goods" v-for="(item) in cartgoryList" :key="item._id" :id="`A${item._id}`">
         <view class="category-title">{{ item.category_name }}</view>
-        <view class="goods-infor" v-for="(item_a, index_a) in item.category" :key="item_a.category_id"
-          @click="selectGoods(index, index_a, item._id, item_a._id)">
+        <view class="goods-infor" v-for="(item_a) in item.category" :key="item_a.category_id" @click="jumpOrderDetails(item_a)">
           <image :src="item_a.goods_image" mode="aspectFill" />
           <view class="product-name">
             <view class="googs-name">{{ item_a.goods_name }}</view>
@@ -56,7 +57,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, getCurrentInstance } from 'vue';
 // 顶部组件
 import TopArea from './components/Top-area.vue';
 // 底部购物车组件
@@ -67,20 +68,79 @@ import require from '@/api/require.js';
 
 // 分类列表
 const cartgoryList = ref([]);
+
+// 左边scroll索引
 const leftIndex = ref(0);
 
-const leftItem = (index) => {
-  console.log('index', index);
+// 右边列表滚动到指定id
+const scrollToViewId = ref('');
+
+// that
+const that = getCurrentInstance();
+
+// 记录，计算右边每个节点的高度，从第二个开始，累加之前的高度
+const rightScrollItemHeight = ref([]);
+
+// 左边scroll - item点击
+const leftItem = (index, _id) => {
   leftIndex.value = index
+  scrollToViewId.value = 'A' + _id;
+
+  // 解决：跳转到指定位置之后，重新再点击不会再触发点击跳转到指定位置
+  setTimeout(() => {
+    scrollToViewId.value = '';
+  }, 200)
+}
+
+// 右边scroll - 滚动回调
+const rightScroll = (e) => {
+  let scrollTop = e.detail.scrollTop;
+  // console.log('scrollTop', scrollTop);
+
+  if (scrollTop >= rightScrollItemHeight.value[leftIndex.value]) {
+    // 往上滚动
+    leftIndex.value += 1;
+  } else if (scrollTop < rightScrollItemHeight.value[leftIndex.value - 1]) {
+    // 往下滚动
+    leftIndex.value -= 1;
+  }
+}
+
+// 获取右边列表节点信息
+const getRightItem = () => {
+  let itemHeight = 0;
+  const query = uni.createSelectorQuery().in(that);
+  query.selectAll(".item-goods").boundingClientRect((data) => {
+    // 累计之前的item高度，生成一个新的数组
+    data.forEach(item => {
+      itemHeight += item.height;
+      rightScrollItemHeight.value.push(itemHeight);
+    })
+  }).exec();
+  console.log('rightScrollItemHeight:', rightScrollItemHeight.value);
+}
+
+// 跳转订单详情
+const jumpOrderDetails = (item) => {
+  uni.navigateTo({
+    url: '/pages/placeOrder/index?item=' + JSON.stringify(item)
+  })
 }
 
 // 获取分类列表
 const cartgory = async () => {
   const res = await require(cartgoryAPI);
   console.log('分类列表', res);
-  cartgoryList.value = res.data
+  cartgoryList.value = res.data;
+
+  // 延迟1秒获取节点数据
+  setTimeout(() => {
+    getRightItem();
+  }, 1000)
 }
+
 cartgory();
+
 </script>
 
 <style lang="scss" scoped>

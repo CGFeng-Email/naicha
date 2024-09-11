@@ -1,0 +1,25 @@
+{
+    "code": 1003,
+    "shop_name": "茶百道",
+    "total_price": 38,
+    "order_type": "到店取餐",
+    "order_time": "1726049430",
+    "order_number": "27389217397189798",
+    "data": [{
+        "category_id": "132190809213",
+        "goods_name": "草莓奶冻",
+        "goods_describe": "优选时令鲜草莓，颗颗娇嫩多汁，融入香醇奶底再搭配清雅七窨茉莉茶底，果香、奶香、茶香自然交融。还有嚼得到的草莓颗粒和嫩滑奶冻，一口酸甜饱满，解锁多重享受。",
+        "goods_image": "https://naicha-1317202885.cos.ap-guangzhou.myqcloud.com/chabaidao/s1_20231208135506_36697.png",
+        "goods_price": 12,
+        "goods_stock": 260,
+        "quantity": 2
+    }, {
+        "category_id": "23390809213",
+        "goods_name": "洛神山楂莓",
+        "goods_describe": "当季洛神花搭配精选山楂长时间熬煮混合，保留完整香味，浓郁花香夹杂明亮酸质，酸甜比更佳。新鲜草莓手捣留香，自然出色。",
+        "goods_image": "https://naicha-1317202885.cos.ap-guangzhou.myqcloud.com/chabaidao/s1_20231208135411_71108.png",
+        "goods_price": 14,
+        "goods_stock": 260,
+        "quantity": 1
+    }]
+}
