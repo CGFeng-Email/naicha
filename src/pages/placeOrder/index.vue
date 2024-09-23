@@ -53,13 +53,21 @@
 		</view>
 	</view>
 
+	<view class="">shoppingList: {{shoppingList}}</view>
+
 	<!-- 占位 -->
 	<view style="height: 200px"></view>
 </template>
 
 <script setup>
-import { ref, watch, computed } from 'vue';
+import { ref, watch, computed, getCurrentInstance } from 'vue';
 import { onLoad } from '@dcloudio/uni-app';
+import { useState } from '../../hooks/useState';
+// import { useMutations } from '../../hooks/useMutations';
+import { useStore } from 'vuex';
+
+// that
+const that = getCurrentInstance();
 
 const _id = ref(''); // 分类父id
 const goods_image = ref(''); // 图片
@@ -71,6 +79,7 @@ const quantity = ref(0); // 购买数量
 const category_id = ref(''); // 商品id
 const goods_stats = ref([]); // 规格列表
 const goods_stock = ref(0); // 库存
+const total_price = ref(0); // 总价格
 
 onLoad((event) => {
 	const data = JSON.parse(event.item);
@@ -194,10 +203,44 @@ const isAddCart = computed(() => {
 	}
 });
 
+const { shoppingList } = useState(['shoppingList']);
+// const { addShoppingState } = useMutations(['addShoppingState']);
+const useStorefn = useStore();
+
 // 点击加入购物车
 const addShoppingCart = () => {
-	console.log(123);
-}
+	// 1、添加商品进vuex
+	// 2、判断是否有规格和无规格，无规格的商品直接添加进store
+	// 3、根据商品的规格id判断store中没有该商品则。直接添加进store，有同样的商品只累加数量和价格
+	// useStorefn.commit('addShoppingState')
+
+	// 判断是否有规格
+	if (goods_stats.value.length > 0) {
+		// 商品规格id
+		const shopping_spec_id = selectAttrList.value.map((item) => {
+			return item.statsid;
+		});
+		console.log('shopping_spec_id', shopping_spec_id);
+
+		// 生成参数
+		const payload = {
+			_id,
+			category_id,
+			goods_image,
+			goods_name,
+			goods_describe,
+			goods_price,
+			quantity,
+			selectAttrList,
+			shopping_spec_id,
+			total_price
+		};
+
+		useStorefn.commit('addShoppingState', payload);
+	} else {
+		// 没规格
+	}
+};
 </script>
 
 <style lang="scss" scoped>
