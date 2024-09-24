@@ -221,7 +221,9 @@ const addShoppingCart = () => {
 			return item.statsid;
 		});
 		console.log('shopping_spec_id', shopping_spec_id);
-
+		
+		total_price.value = goods_price.value;
+		
 		// 生成参数
 		const payload = {
 			_id,

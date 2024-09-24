@@ -59,6 +59,7 @@
     "@dcloudio/uni-mp-xhs": "3.0.0-4020420240722002",
     "@dcloudio/uni-quickapp-webview": "3.0.0-4020420240722002",
     "dayjs": "^1.11.13",
+    "decimal.js": "^10.4.3",
     "duration": "^0.2.2",
     "sass": "^1.78.0",
     "scss": "^0.2.4",

@@ -17,54 +17,64 @@ const store = createStore({
 	mutations: {
 		addShoppingState(state, payload) {
 			const shoppingList = state.shoppingList;
+			console.log('shoppingList', shoppingList);
 			console.log('payload', payload);
-			// 判断是否有重复商品，没有就直接新增，有就只计算数量和价格
-			if (state.shoppingList.length <= 0) {
-				return state.shoppingList.push(payload)
-				console.log('shoppingList', state.shoppingList);
+
+			// 仓库里没有商品 - 新增
+			if (shoppingList.length <= 0) {
+				state.shoppingList.push(payload)
+
+				uni.switchTab({
+					url: '/pages/ordersystem/index'
+				})
+
+				console.log('更新后shoppingList', state.shoppingList);
+				return;
 			}
-			// 默认新商品
-			for (let i = 0; i < shoppingList.length; i++) {
-				// 判断商品父id和商品id是否一致
-				if (shoppingList[i]._id != payload._id.value || shoppingList[i].category_id != payload
-					.category_id.value) {
-					console.log('商品父id和商品id不一致');
 
-					if (JSON.stringify(shoppingList[i].shopping_spec_id) == JSON.stringify(payload
+			// 先查询商品仓库数组中是否有对应商品的id
+			const findIndex = shoppingList.findIndex(item => {
+				return item._id == payload._id.value && item.category_id == payload.category_id.value
+			})
+
+			console.log('findIndex', findIndex);
+
+			if (findIndex != -1) {
+				// 在数组中查到对应的id商品
+				for (let i in shoppingList) {
+					if (JSON.stringify(shoppingList[findIndex].shopping_spec_id) == JSON.stringify(payload
 							.shopping_spec_id)) {
-						shoppingList[i].quantity += payload.quantity.value;
-						shoppingList[i].goods_price += payload.goods_price.value;
-						shoppingList[i].total_price = Number(shoppingList[i].quantity) * Number(shoppingList[i]
-							.goods_price);
 
+						const numberQuantity = Number(payload.quantity.value);
+						const numberGoodsPrice = Number(payload.goods_price.value);
+						
+						// 购买数量
+						shoppingList[findIndex].quantity += numberQuantity;
+						// 商品金额
+						shoppingList[findIndex].goods_price = numberGoodsPrice;
+						// 商品总金额 
+						shoppingList[findIndex].total_price = shoppingList[findIndex].quantity * numberGoodsPrice;
+						
 						state.shoppingList = shoppingList;
+						console.log('重复商品');
 						break;
 					} else {
-						console.log('规格不一样 - 新商品');
-						state.shoppingList.push(payload)
-						break;
-					}
-				} else {
-					console.log('商品父id和商品id一致');
-					// 如果有两个一模一样的规格列表就不要再往下循环了
-					if (JSON.stringify(shoppingList[i].shopping_spec_id) == JSON.stringify(payload
-							.shopping_spec_id)) {
-						console.log('规格一样 - 累加数量价格 - 跳出循环');
-						shoppingList[i].quantity += payload.quantity.value;
-						shoppingList[i].goods_price += payload.goods_price.value;
-						shoppingList[i].total_price = Number(shoppingList[i].quantity) * Number(shoppingList[i]
-							.goods_price);
-
-						state.shoppingList = shoppingList;
-						break;
-					} else {
-						console.log('规格不一样 - 新商品');
+						console.log('新商品');
 						state.shoppingList.push(payload)
 						break;
 					}
 				}
+			} else {
+				console.log('新商品');
+				state.shoppingList.push(payload);
 			}
-			console.log('shoppingList', state.shoppingList);
+
+			uni.switchTab({
+				url: '/pages/ordersystem/index'
+			})
+
+			console.log('更新后shoppingList', state.shoppingList);
+			return;
 		}
 	},
 	// 异步，任何异步axios都在这里来执行
