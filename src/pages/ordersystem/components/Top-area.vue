@@ -31,7 +31,7 @@ import { ref, onMounted, getCurrentInstance } from 'vue';
 import useMenuButton from '@/hooks/useMenuButton.js';
 // 店铺信息
 import { useShopInfo } from '@/hooks/useShopInfo.js';
-console.log(useShopInfo());
+// console.log(useShopInfo());
 // 计算距离
 import { useDistance, useTime } from '@/hooks/useHooks.js';
 
@@ -58,7 +58,6 @@ const duration = ref('');
 onMounted(() => {
   const query = uni.createSelectorQuery().in(that);
   query.select(".search-view").boundingClientRect((data) => {
-    console.log('data', data);
     topHeight.value = data.height + 'px'
   }).exec();
 })
@@ -70,11 +69,11 @@ const distance = async (from, to) => {
   uni.request({
     url: `https://apis.map.qq.com/ws/distance/v1/matrix?key=${mapKey.value}&mode=${mapMode.value}&from=${from}&to=${to}`,
     success: res => {
-      console.log('距离', res);
+      // console.log('距离', res);
       if (res.statusCode == 200) {
         if (res.data.result) {
           const distance = res.data.result.rows[0].elements[0].distance;
-          console.log('distance', distance);
+          // console.log('distance', distance);
           km.value = useDistance(Number(distance))
           const time = res.data.result.rows[0].elements[0].duration;
           duration.value = useTime(time);

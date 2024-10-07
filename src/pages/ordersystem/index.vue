@@ -12,13 +12,13 @@
 				<text class="title">{{ item.category_name }}</text>
 			</view>
 		</scroll-view>
-		<!-- 右边 -->
 
+		<!-- 右边 -->
 		<scroll-view class="scroll-height-right" scroll-y enhanced enable-passive :show-scrollbar="false" :scroll-into-view="scrollToViewId" @scroll="rightScroll">
-			<view class="item-goods" v-for="item in cartgoryList" :key="item._id" :id="`A${item._id}`">
+			<view class="item-goods" v-for="(item, index) in cartgoryList" :key="item._id" :id="`A${item._id}`">
 				<view class="category-title">{{ item.category_name }}</view>
-				<view class="goods-infor" v-for="item_a in item.category" :key="item_a.category_id" @click="jumpOrderDetails(item._id, item_a)">
-					<image :src="item_a.goods_image" mode="aspectFill" />
+				<view class="goods-infor" v-for="(item_a, index2) in item.category" :key="item_a.category_id" @click="jumpOrderDetails(item._id, item_a)">
+					<image :src="item_a.goods_image" mode="aspectFit" />
 					<view class="product-name">
 						<view class="googs-name">{{ item_a.goods_name }}</view>
 						<view class="googs-intro over3">{{ item_a.goods_describe }}</view>
@@ -30,14 +30,30 @@
 							<!-- 有库存 -->
 							<block v-if="item_a.goods_stock > 0">
 								<!-- 默认展示选规格 -->
-								<view class="select-quantity" v-if="item_a.quantity <= 0">
+								<view class="select-quantity" v-if="item_a.goods_stats">
 									<button>选规格</button>
+									<view class="state_quantity" v-if="item_a.quantity > 0">
+										{{ item_a.quantity }}
+									</view>
 								</view>
 								<!-- 选择数量 -->
 								<view v-else class="select-goods single-goods">
-									<image src="/static/jian-goods.png" mode="widthFix" v-if="item_a.quantity > 0" />
+									<image
+										src="/static/jian-goods.png"
+										mode="widthFix"
+										v-if="item_a.quantity > 0"
+										@click.stop="
+											deCrement(index, index2, item._id, item_a.category_id, item_a.goods_image, item_a.goods_name, item_a.goods_describe, item_a.goods_price)
+										"
+									/>
 									<text v-if="item_a.quantity > 0">{{ item_a.quantity }}</text>
-									<image src="/static/jia-goods.png" mode="widthFix" />
+									<image
+										src="/static/jia-goods.png"
+										mode="widthFix"
+										@click.stop="
+											inCrement(index, index2, item._id, item_a.category_id, item_a.goods_image, item_a.goods_name, item_a.goods_describe, item_a.goods_price)
+										"
+									/>
 								</view>
 							</block>
 							<view v-else>
@@ -55,7 +71,7 @@
 </template>
 
 <script setup>
-import { ref, getCurrentInstance } from 'vue';
+import { ref, getCurrentInstance, watch } from 'vue';
 // 顶部组件
 import TopArea from './components/Top-area.vue';
 // 底部购物车组件
@@ -63,6 +79,12 @@ import ShoppingCart from './components/Shopping-cart.vue';
 // 接口api
 import { cartgoryAPI } from '@/api/api.js';
 import require from '@/api/require.js';
+// store
+import { useStore } from 'vuex';
+const useStorefn = useStore();
+import { useState } from '@/hooks/useState.js';
+const { shoppingList } = useState(['shoppingList']);
+console.log('shoppingList', shoppingList);
 
 // 分类列表
 const cartgoryList = ref([]);
@@ -118,14 +140,14 @@ const getRightItem = () => {
 			});
 		})
 		.exec();
-	console.log('rightScrollItemHeight:', rightScrollItemHeight.value);
+	// console.log('rightScrollItemHeight:', rightScrollItemHeight.value);
 };
 
 // 跳转订单详情
 const jumpOrderDetails = (_id, item) => {
-	const params = { _id, item };
+	item._id = _id;
 	uni.navigateTo({
-		url: '/pages/placeOrder/index?item=' + JSON.stringify(params)
+		url: '/pages/placeOrder/index?item=' + JSON.stringify(item)
 	});
 };
 
@@ -142,6 +164,106 @@ const cartgory = async () => {
 };
 
 cartgory();
+
+// 是否需要返回上一页
+const returnPage = ref(false);
+// 没规格 - 添加商品
+const inCrement = (index, index2, _id, category_id, goods_image, goods_name, goods_describe, goods_price) => {
+	// 当前商品数量加1
+	cartgoryList.value[index].category[index2].quantity += 1;
+	const quantity = cartgoryList.value[index].category[index2].quantity;
+	useStorefn.commit('addShoppingState', { _id, category_id, goods_image, goods_name, goods_describe, goods_price, quantity, returnPage });
+};
+
+// 没规格 - 减少/商品
+const deCrement = (index, index2, _id, category_id, goods_image, goods_name, goods_describe, goods_price) => {
+	// 当前商品数量加1
+	cartgoryList.value[index].category[index2].quantity -= 1;
+	const quantity = cartgoryList.value[index].category[index2].quantity;
+	if (quantity > 0) {
+		useStorefn.commit('addShoppingState', { _id, category_id, goods_image, goods_name, goods_describe, goods_price, quantity, returnPage });
+	} else {
+		// 当购买数量 == 0时，删除商品
+		useStorefn.commit('delShoppingState', { _id, category_id });
+	}
+};
+
+// 同步列表和store商品列表数量
+watch([() => shoppingList.value.map((item) => item.quantity), () => shoppingList.value.map((item) => item.category_id)], ([newVal, idNewVal], [oldVal, idOldVal]) => {
+	console.log('newVal', newVal);
+	console.log('oldVal', oldVal);
+	console.log('idNewVal', idNewVal);
+	console.log('idOldVal', idOldVal);
+
+	// 底部购物车，减少商品到1时，同步到列表
+	if (idNewVal.length < idOldVal.length) {
+		for (let i in idOldVal) {
+			if (idNewVal[i] != idOldVal[i]) {
+				// 得出不等
+				var id = idOldVal[i];
+				console.log('不等的id', id);
+				break;
+			}
+		}
+		// 循环，找出子级id所在的商品
+		cartgoryList.value.forEach((item, index) => {
+			item.category.forEach((item2, index2) => {
+				if (item2.category_id == id) {
+					cartgoryList.value[index].category[index2].quantity = 0;
+				}
+			});
+		});
+	}
+
+	for (let i in newVal) {
+		if (newVal[i] != oldVal[i]) {
+			// 得到当前商品数量不相当的哪一项商品
+			var shoppingItem = shoppingList.value[i];
+			console.log('shoppingItem', shoppingItem);
+			break;
+		}
+	}
+	// 如果监听数组长度为0，断掉
+	if (newVal.length <= 0) return;
+
+	// 处理规格不相同时的购买数量问题，同一个商品id，所有购买数量累加
+	let quantity = 0;
+	shoppingList.value.forEach((item) => {
+		if (shoppingItem && item.category_id == shoppingItem.category_id) {
+			quantity += item.quantity;
+		}
+	});
+
+	if (shoppingItem) {
+		// 根据父分类id查询下标
+		const fatherIndex = cartgoryList.value.findIndex((item) => item._id == shoppingItem._id);
+		console.log('fatherIndex', fatherIndex);
+		if (fatherIndex != -1) {
+			// 根据商品id查询子级categort列表下标
+			const categoryIndex = cartgoryList.value[fatherIndex].category.findIndex((item) => item.category_id == shoppingItem.category_id);
+			console.log('categoryIndex', categoryIndex);
+			// 更新对应的商品数量
+			cartgoryList.value[fatherIndex].category[categoryIndex].quantity = quantity;
+		}
+	}
+});
+
+// 当购物车一键清空时，所有商品的数量=0
+watch(
+	() => shoppingList.value,
+	(newVal) => {
+		console.log('当购物车一键清空时,所有商品的数量=0', newVal);
+		if (newVal.length <= 0) {
+			if (cartgoryList.value.length > 0) {
+				cartgoryList.value.forEach((item) => {
+					item.category.forEach((item2) => {
+						item2.quantity = 0;
+					});
+				});
+			}
+		}
+	}
+);
 </script>
 
 <style lang="scss" scoped>
@@ -267,7 +389,7 @@ cartgory();
 	border-radius: 40rpx;
 }
 
-.select-quantity text {
+.select-quantity .state_quantity {
 	position: absolute;
 	top: -7rpx;
 	right: 0;

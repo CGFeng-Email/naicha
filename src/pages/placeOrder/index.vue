@@ -1,19 +1,19 @@
 <template>
 	<!-- banner -->
 	<view class="banner">
-		<image class="cover" :src="goods_image" mode="aspectFit"></image>
+		<image class="cover" :src="detailsData.goods_image" mode="aspectFit"></image>
 	</view>
 
 	<view class="main">
 		<!-- 标题 -->
-		<view class="title">{{ goods_name }}</view>
+		<view class="title">{{ detailsData.goods_name }}</view>
 
 		<!-- 描述 -->
-		<view class="describe">{{ goods_describe }}</view>
+		<view class="describe">{{ detailsData.goods_describe }}</view>
 
 		<!-- 规格列表 -->
 		<view class="specification">
-			<view class="box" v-for="(item, index) in goods_stats" :key="item.name">
+			<view class="box" v-for="(item, index) in detailsData.goods_stats" :key="item.name">
 				<view class="title">{{ item.name }}</view>
 				<!-- 规格属性 -->
 				<view class="attr_list">
@@ -36,10 +36,10 @@
 	<!-- 底部购物车 -->
 	<view class="shopping_cart">
 		<view class="dispose">
-			<view class="price">￥{{ goods_price }}</view>
+			<view class="price">￥{{ detailsData.goods_price }}</view>
 			<view class="select_number">
-				<image class="cover" src="/static/jian-goods.png" v-if="quantity > 0" @click="deCrement"></image>
-				<text class="num" v-if="quantity > 0">{{ quantity }}</text>
+				<image class="cover" src="/static/jian-goods.png" v-if="detailsData.quantity > 0" @click="deCrement"></image>
+				<text class="num" v-if="detailsData.quantity > 0">{{ detailsData.quantity }}</text>
 				<image class="cover" src="/static/jia-goods.png" @click="inCrement"></image>
 			</view>
 		</view>
@@ -48,12 +48,10 @@
 		</view>
 		<view class="join_cart">
 			<!-- 根据库存数量显示 -->
-			<button v-if="goods_stock > 0" class="button" :disabled="isAddCart" :class="{ active: !isAddCart }" @click="addShoppingCart">加入购物车</button>
+			<button v-if="detailsData.goods_stock > 0" class="button" :disabled="isAddCart" :class="{ active: !isAddCart }" @click="addShoppingCart">加入购物车</button>
 			<button v-else class="button">已售馨</button>
 		</view>
 	</view>
-
-	<view class="">shoppingList: {{shoppingList}}</view>
 
 	<!-- 占位 -->
 	<view style="height: 200px"></view>
@@ -62,38 +60,31 @@
 <script setup>
 import { ref, watch, computed, getCurrentInstance } from 'vue';
 import { onLoad } from '@dcloudio/uni-app';
-import { useState } from '../../hooks/useState';
-// import { useMutations } from '../../hooks/useMutations';
 import { useStore } from 'vuex';
+const useStorefn = useStore();
 
 // that
 const that = getCurrentInstance();
+const detailsData = ref({});
 
-const _id = ref(''); // 分类父id
-const goods_image = ref(''); // 图片
-const goods_name = ref(''); // 名称
-const goods_describe = ref(''); // 详情描述
-const goods_price = ref(''); // 价格
-const default_price = ref(''); // 默认价格，当查询修改价格后，又取消所有选中的规格属性，恢复默认价格
-const quantity = ref(0); // 购买数量
-const category_id = ref(''); // 商品id
-const goods_stats = ref([]); // 规格列表
-const goods_stock = ref(0); // 库存
-const total_price = ref(0); // 总价格
+// const _id = ref(''); // 分类父id
+// const goods_image = ref(''); // 图片
+// const goods_name = ref(''); // 名称
+// const goods_describe = ref(''); // 详情描述
+// const goods_price = ref(''); // 价格
+// const quantity = ref(0); // 购买数量
+// const category_id = ref(''); // 商品id
+// const goods_stats = ref([]); // 规格列表
+// const goods_stock = ref(0); // 库存
 
 onLoad((event) => {
-	const data = JSON.parse(event.item);
-	console.log('data', data);
-	_id.value = data._id;
-	goods_image.value = data.item.goods_image;
-	goods_name.value = data.item.goods_name;
-	goods_describe.value = data.item.goods_describe;
-	goods_price.value = data.item.goods_price;
-	default_price.value = data.item.goods_price;
-	goods_stats.value = data.item.goods_stats;
-	goods_stock.value = data.item.goods_stock;
-	category_id.value = data.item.category_id;
-	quantity.value = data.item.quantity;
+	// 有规格的情况下，如果购买数量大于0，应该初始化购买数量为0
+	const item = JSON.parse(event.item);
+	if (item.goods_stats) {
+		item.quantity = 0;
+	}
+	detailsData.value = item;
+	console.log('detailsData', detailsData.value);
 });
 
 // 选中的规格属性列表
@@ -101,12 +92,12 @@ const selectAttrList = ref([]);
 // 点击选中规格和取消规格
 const selectAttr = (index, index2, selected, statsid, name, name2) => {
 	// 选中和取消选中
-	goods_stats.value[index].selected = selected == statsid ? '' : statsid;
+	detailsData.value.goods_stats[index].selected = selected == statsid ? '' : statsid;
 	// 获取当前选中的规格-下标索引
 	let selectAttrListIndex = selectAttrList.value.findIndex((item) => item.name == name);
 	console.log('selectAttrListIndex', selectAttrListIndex);
 	// 选中
-	if (goods_stats.value[index].selected) {
+	if (detailsData.value.goods_stats[index].selected) {
 		// 生成规格属性-对象
 		let obj = {
 			name,
@@ -139,13 +130,12 @@ const selectAttr = (index, index2, selected, statsid, name, name2) => {
 watch(
 	selectAttrList,
 	(newVal) => {
-		console.log('newVal', newVal);
 		// 当选中的规格属性长度 == 规格属性列表长度
-		if (newVal.length == goods_stats.length) {
-			// 查询价格
+		if (newVal.length == detailsData.value.goods_stats.length) {
+			// 查询价格, 根据规格获取对应的价格
 		} else if (newVal.length == 0) {
 			// 初始化默认价格
-			goods_price.value = default_price.value;
+			detailsData.value.goods_price = 0;
 		}
 	},
 	{ deep: true }
@@ -153,24 +143,29 @@ watch(
 
 // 购买数量增加
 const inCrement = () => {
-	// 必需得要所有规格属性全选才能进行增加数量
-	const isLength = selectAttrList.value.length == goods_stats.value.length;
-
-	if (isLength) {
-		// 全选
-		quantity.value += 1;
+	// 有规格
+	if (detailsData.value.goods_stats) {
+		// 必需得要所有规格属性全选才能进行增加数量
+		const isLength = selectAttrList.value.length == detailsData.value.goods_stats.length;
+		if (isLength) {
+			// 全选
+			detailsData.value.quantity += 1;
+		} else {
+			uni.showToast({
+				title: '请选择规格属性',
+				icon: 'none',
+				duration: 2000
+			});
+		}
 	} else {
-		uni.showToast({
-			title: '请选择规格属性',
-			icon: 'none',
-			duration: 2000
-		});
+		// 没规格
+		detailsData.value.quantity += 1;
 	}
 };
 
 // 购买数量减少
 const deCrement = () => {
-	quantity.value -= 1;
+	detailsData.value.quantity -= 1;
 };
 
 // 加入购物车:
@@ -179,11 +174,11 @@ const deCrement = () => {
 // 使用计算属性完成条件1，条件2
 const isAddCart = computed(() => {
 	// 判断是否有规格
-	if (goods_stats.value > 0) {
+	if (detailsData.value.goods_stats) {
 		// 有规格，规格必需要全部选中
 		// 购买数量大于0
-		const isLength = selectAttrList.value.length == goods_stats.value.length;
-		if (isLength && quantity.value > 0) {
+		const isLength = selectAttrList.value.length == detailsData.value.goods_stats.length;
+		if (isLength && detailsData.value.quantity > 0) {
 			// 解除禁用
 			return false;
 		} else {
@@ -192,8 +187,8 @@ const isAddCart = computed(() => {
 		}
 	} else {
 		// 没有规格，只需判断一下购买数量大于0
-		const isLength = selectAttrList.value.length == goods_stats.value.length;
-		if (isLength && quantity.value > 0) {
+
+		if (detailsData.value.quantity > 0) {
 			// 解除禁用
 			return false;
 		} else {
@@ -203,10 +198,6 @@ const isAddCart = computed(() => {
 	}
 });
 
-const { shoppingList } = useState(['shoppingList']);
-// const { addShoppingState } = useMutations(['addShoppingState']);
-const useStorefn = useStore();
-
 // 点击加入购物车
 const addShoppingCart = () => {
 	// 1、添加商品进vuex
@@ -215,33 +206,18 @@ const addShoppingCart = () => {
 	// useStorefn.commit('addShoppingState')
 
 	// 判断是否有规格
-	if (goods_stats.value.length > 0) {
+	if (detailsData.value.goods_stats) {
 		// 商品规格id
-		const shopping_spec_id = selectAttrList.value.map((item) => {
+		detailsData.value.shopping_spec_id = selectAttrList.value.map((item) => {
 			return item.statsid;
 		});
-		console.log('shopping_spec_id', shopping_spec_id);
-		
-		total_price.value = goods_price.value;
-		
-		// 生成参数
-		const payload = {
-			_id,
-			category_id,
-			goods_image,
-			goods_name,
-			goods_describe,
-			goods_price,
-			quantity,
-			selectAttrList,
-			shopping_spec_id,
-			total_price
-		};
-
-		useStorefn.commit('addShoppingState', payload);
-	} else {
-		// 没规格
 	}
+
+	// 是否需要返回上一页
+	detailsData.value.returnPage = true;
+
+	// 调用store，添加商品
+	useStorefn.commit('addShoppingState', detailsData.value);
 };
 </script>
 
